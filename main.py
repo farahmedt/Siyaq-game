@@ -50,69 +50,9 @@ class ArabicWordEmbedding:
     
     def load_or_create_model(self):
         """تحميل أو إنشاء نموذج Word2Vec"""
-        try:
-            # محاولة تحميل Gensim إذا كان متوفراً
-            from gensim.models import Word2Vec
-            self.model = self._create_arabic_word2vec()
-            print("✅ Word2Vec model loaded successfully")
-        except ImportError:
-            print("⚠️ Gensim not available, using fallback similarity system")
-            self._create_fallback_model()
-    
-    def _create_arabic_word2vec(self):
-        """إنشاء أو تحميل نموذج Word2Vec للعربية"""
-        model_path = "arabic_word2vec.model"
-        
-        if os.path.exists(model_path):
-            from gensim.models import Word2Vec
-            return Word2Vec.load(model_path)
-        
-        # إنشاء نموذج من قاعدة بيانات الكلمات
-        sentences = self._generate_training_sentences()
-        from gensim.models import Word2Vec
-        model = Word2Vec(sentences=sentences, vector_size=100, window=5, min_count=1, workers=4)
-        model.save(model_path)
-        return model
-    
-    def _generate_training_sentences(self):
-        """توليد جمل تدريبية من قاعدة الكلمات"""
-        sentences = []
-        
-        # مجموعات كلمات متعلقة (سياقات)
-        contexts = [
-            # الطعام والشراب
-            ["قهوة", "هيل", "دلة", "فنجال", "بن", "محمصة", "كوب", "سكر", "حليب", "شاي", "كافيين", "مزاج", "مقهى", "فطور", "عصير"],
-            # الطبيعة
-            ["شمس", "قمر", "نجم", "سماء", "بحر", "جبل", "شجر", "زهر", "مطر", "ريح", "غيم", "صحراء", "وادي", "نهر", "بحر"],
-            # المنزل
-            ["بيت", "غرفة", "باب", "نافذة", "سقف", "جدار", "أرض", "مطبخ", "حمام", "حديقة", "كراج", "سلم", "مصعد"],
-            # النقل
-            ["سيارة", "حافلة", "قطار", "طائرة", "سفينة", "دراجة", "موتور", "شاحنة", "مترو", "تاكسي", "ميناء", "مطار", "محطة"],
-            # التعليم
-            ["مدرسة", "جامعة", "كتاب", "قلم", "سبورة", "طالب", "أستاذ", "درس", "امتحان", "درجة", "شهادة", "مكتبة", "بحث"],
-            # الصحة
-            ["مستشفى", "طبيب", "صيدلية", "دواء", "علاج", "صحة", "مرض", "جراحة", "تحليل", "أشعة", "عيادة", "تمريض"],
-            # التكنولوجيا
-            ["حاسوب", "هاتف", "شاشة", "انترنت", "موقع", "تطبيق", "برنامج", "ذكاء", "بيانات", "شبكة", "رقمي", "إلكتروني"],
-            # الرياضة
-            ["كرة", "ملعب", "فريق", "لعب", "رياضة", "هدف", "فوز", "خسارة", "تدريب", "مدرب", "لاعب", "مباراة", "بطولة"],
-            # الفن
-            ["موسيقى", "غناء", "رقص", "فن", "لوحة", "مسرح", "سينما", "فيلم", "ممثل", "أغنية", "آلة", "عزف", "إبداع"],
-            # الاقتصاد
-            ["مال", "بنك", "شركة", "سوق", "تجارة", "استثمار", "ربح", "خسارة", "سعر", "عملة", "اقتصاد", "تسويق", "بيع"],
-            # العائلة
-            ["أب", "أم", "ابن", "ابنة", "أخ", "أخت", "جد", "جدة", "عم", "خال", "عائلة", "بيت", "زوج", "زوجة", "طفل"],
-            # المدينة
-            ["شارع", "مبنى", "متجر", "سوق", "حديقة", "ميدان", "جسر", "نفق", "إشارة", "رصيف", "حي", "منطقة", "مدينة"],
-        ]
-        
-        # توليد جمل من السياقات
-        for context in contexts:
-            for _ in range(50):
-                sentence = random.sample(context, min(len(context), random.randint(3, 6)))
-                sentences.append(sentence)
-        
-        return sentences
+        # استخدام النظام البديل (أسرع وأخف)
+        print("⚡ Using lightweight similarity system")
+        self._create_fallback_model()
     
     def _create_fallback_model(self):
         """إنشاء نظام بديل للتشابه عند عدم توفر Word2Vec"""
@@ -364,15 +304,7 @@ class ArabicWordEmbedding:
         if clean1 == clean2:
             return 1.0
         
-        # استخدام Word2Vec إذا كان متوفراً
-        if self.model and hasattr(self.model, 'wv'):
-            try:
-                if clean1 in self.model.wv and clean2 in self.model.wv:
-                    return float(self.model.wv.similarity(clean1, clean2))
-            except:
-                pass
-        
-        # استخدام النظام البديل
+        # استخدام النظام البديل (سريع وفعال)
         return self._fallback_similarity(clean1, clean2)
     
     def _fallback_similarity(self, word1, word2):
