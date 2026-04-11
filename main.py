@@ -63,8 +63,7 @@ replacements = {
 'ة': 'ه',
 'ى': 'ي',
 'ئ': 'ي',
-'
-'ؤ': 'و
+'ؤ': 'و'
 }
 for old, new in replacements.items():
 text = text.replace(old, new)
