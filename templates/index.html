@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سياق</title>
+<title>سِياق - Siyaq (Contexto in Arabic)</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body class="dark-mode">
     <div class="container">
        
         <div class="header-section">
-            <h1>س<span style="font-weight: 400; opacity: 0.5;">ِ</span>ـيــاق</h1>
+<h1>سِـيــاق</h1>
             <p class="subtitle">خمّن الكلمة من سياقها</p>
         </div>
 
@@ -59,8 +59,24 @@
                 <div class="color-row"><div class="color-box box-red"></div><span id="redCount">٠</span></div>
             </div>
            
+            <div id="countdownContainer" style="margin: 20px 0;">
+                <p style="margin: 0; font-size: 0.9rem; opacity: 0.8;">الكلمة القادمة:</p>
+                <h3 id="countdownTimer" style="margin: 5px 0; direction: ltr; font-size: 1.5rem; color: var(--rank-close);">00:00:00</h3>
+            </div>
+           
             <button class="share-btn" onclick="shareResult()">مشاركة النتيجة 🔗</button>
             <button class="play-again-btn" onclick="resetGame()">لعب مرة أخرى ↻</button>
+        </div> <div id="closestWordsSection" style="display: none; text-align: center; margin-bottom: 20px;">
+            <button id="showClosestBtn" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 20px; border-radius: 20px; border: 2px solid var(--bar-border); background-color: var(--box-bg); color: var(--text-color); font-family: 'Tajawal'; font-weight: bold; cursor: pointer; font-size: 0.95rem; margin: 0 auto;" onclick="toggleClosestWords()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                الكلمات القريبة
+            </button>
+
+            <div id="closestWordsContainer" style="display: none; margin-top: 15px; text-align: right; max-height: 250px; overflow-y: auto; border: 2px solid var(--bar-border); padding: 10px; border-radius: 8px; background-color: var(--box-bg);">
+                <div id="closestWordsList"></div>
+            </div>
+        </div>
+
         </div>
 
         <div id="gameOverStatsPlaceholder"></div>
