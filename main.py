@@ -2,7 +2,7 @@
 Siyaq Backend - Smart Arabic Semantic Engine (Optimized for Render Free Tier)
 """
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import os
 import random
@@ -54,17 +54,14 @@ class SiyaqEngine:
     def get_daily_word(self):
         today = self.get_ksa_date()
         if self.last_date != today or not self.daily_word:
-            # نثبت السيد (Seed) بناءً على التاريخ عشان كل الناس تطلعلهم نفس الكلمة
             random.seed(today.toordinal())
             self.daily_word = random.choice(self.target_words)
             self.last_date = today
         return self.daily_word
 
     def is_valid_word(self, word):
-        # التأكد إن الكلمة حروف عربية فقط وبدون خرابيط
         if not re.match(r'^[\u0621-\u064A]+$', word) or len(word) < 2:
             return False
-        # رفض الحروف المكررة 3 مرات ورا بعض (مثل خخخ)
         if re.search(r'(.)\1\1', word):
             return False
         return True
@@ -73,38 +70,32 @@ class SiyaqEngine:
         if guess == secret:
             return 1
             
-        # محرك تقييم ذكي ومستقر
         score = 0
         cat_secret = self.word_to_cat.get(secret)
         cat_guess = self.word_to_cat.get(guess)
         
-        # 1. إذا كانت في نفس التصنيف
         if cat_secret and cat_secret == cat_guess:
             score += 50
             
-        # 2. التشابه الحرفي (يفيد في الاشتقاقات زي: كتاب، مكتبة، كاتب)
         similarity = difflib.SequenceMatcher(None, guess, secret).ratio()
         score += int(similarity * 40)
         
-        # 3. ترتيب ثابت للكلمات العشوائية بناءً على الكلمتين
         random.seed(secret + guess)
         random_factor = random.randint(1, 100)
         
         if score > 50:
-            rank = random.randint(2, 300) # خضراء
+            rank = random.randint(2, 300) 
         elif score > 20:
-            rank = random.randint(301, 1000) # برتقالية
+            rank = random.randint(301, 1000) 
         else:
-            rank = random.randint(1001, 50000) + random_factor # حمراء
+            rank = random.randint(1001, 50000) + random_factor 
             
         return rank
 
     def generate_closest_words(self, secret):
-        # توليد لستة بـ 500 كلمة قريبة (لزر أقرب الكلمات)
         closest = []
         cat_secret = self.word_to_cat.get(secret)
         
-        # نجيب كلمات نفس التصنيف ونعطيها رتب قريبة جداً
         if cat_secret:
             for w in self.categories[cat_secret]:
                 if w != secret:
@@ -112,7 +103,6 @@ class SiyaqEngine:
                     if rank > 300: rank = random.randint(2, 299)
                     closest.append({"word": w, "rank": rank})
                     
-        # نكمل الباقي بكلمات من القاموس
         for w in self.target_words:
             if w != secret and w not in [x['word'] for x in closest]:
                 closest.append({"word": w, "rank": self.calculate_rank(w, secret)})
@@ -149,9 +139,14 @@ game_state = GameState()
 # API Routes
 # ============================================================================
 
+# السطر اللي نسيناه! هذا هو اللي يفتح الواجهة
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    engine.get_daily_word() # تفعيل المحرك
+    engine.get_daily_word() 
     return jsonify({'success': True, 'status': 'healthy', 'ksa_date': str(engine.get_ksa_date())})
 
 @app.route('/api/guess', methods=['POST'])
@@ -166,7 +161,6 @@ def make_guess():
     session = game_state.get_session(session_id)
     secret_word = session['secret_word']
     
-    # التحقق من التكرار
     existing_guesses = [g['word'] for g in session['guesses']]
     if word in existing_guesses:
         return jsonify({'success': True, 'duplicate': True})
@@ -201,7 +195,6 @@ def get_hint():
     existing_words = [g['word'] for g in session['guesses']]
     closest_list = session['closest_cache']
     
-    # ندور على كلمة خضراء (تحت 300) ما خمنها اللاعب للحين
     hint_word = None
     hint_rank = None
     for item in closest_list:
@@ -257,7 +250,6 @@ def reset_game():
     data = request.get_json()
     session_id = data.get('session_id', 'default')
     
-    # احتفظ بالكلمة السرية لليوم نفسه بس صفر المحاولات
     if session_id in game_state.sessions:
         game_state.sessions[session_id]['guesses'] = []
         game_state.sessions[session_id]['hints_used'] = 0
