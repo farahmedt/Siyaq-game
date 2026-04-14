@@ -1,6 +1,6 @@
 // --- سِـيــاق: Frontend with Backend Integration ---
 
-const API_BASE_URL = ''; 
+const API_BASE_URL = 'https://farahth-siyaq-api.hf.space'; 
 
 let totalGuesses = 0;
 let totalHints = 0;
@@ -71,7 +71,7 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
     const options = { method: method, headers: { 'Content-Type': 'application/json' } };
     if (data) options.body = JSON.stringify(data);
     try {
-        const response = await fetch(`${API_BASE_URL}/api${endpoint}`, options);
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(errorData.error || `HTTP ${response.status}`);
@@ -144,7 +144,7 @@ async function checkGuess() {
 
     showLoading();
     try {
-        const result = await apiRequest('/guess', 'POST', { word: rawWord, session_id: sessionId });
+        const result = await apiRequest('/api/guess', 'POST', { word: rawWord, session_id: sessionId });
         hideLoading();
 
         if (result.duplicate) {
@@ -159,7 +159,6 @@ async function checkGuess() {
             lastWordGuessed = rawWord;
             renderResults();
             
-            // التعديل: هنا نرسل الكلمة عشان تنطبع بدون علامات استفهام
             if (result.is_correct || result.won) showEndGame(true, rawWord);
         }
         input.value = "";
@@ -174,7 +173,7 @@ async function getHint() {
     if (isGameOver) return;
     showLoading();
     try {
-        const result = await apiRequest('/hint', 'POST', { session_id: sessionId });
+        const result = await apiRequest('/api/hint', 'POST', { session_id: sessionId });
         hideLoading();
         if (result.success) {
             totalHints++;
@@ -200,7 +199,7 @@ async function giveUp() {
     closeModal("confirmModal");
     showLoading();
     try {
-        const result = await apiRequest('/give-up', 'POST', { session_id: sessionId });
+        const result = await apiRequest('/api/give-up', 'POST', { session_id: sessionId });
         hideLoading();
         if (result.success) showEndGame(false, result.secret_word);
     } catch (error) {
@@ -241,7 +240,7 @@ function showEndGame(isWin, revealedWord = null) {
     }
     
     document.getElementById("gameOverBox").style.display = "block";
-    document.getElementById("closestWordsSection").style.display = "block"; // نظهر زر الكلمات القريبة
+    document.getElementById("closestWordsSection").style.display = "block";
     document.getElementById("inputArea").style.display = "none";
     document.getElementById("gameOverStatsPlaceholder").appendChild(document.getElementById("statsContainer"));
 }
@@ -249,7 +248,7 @@ function showEndGame(isWin, revealedWord = null) {
 async function resetGame() {
     showLoading();
     try {
-        await apiRequest('/reset', 'POST', { session_id: sessionId });
+        await apiRequest('/api/reset', 'POST', { session_id: sessionId });
         totalGuesses = 0; totalHints = 0; isGameOver = false; guessesArray = []; lastWordGuessed = "";
         
         document.getElementById("guessCount").innerText = "٠";
@@ -274,7 +273,6 @@ async function resetGame() {
     }
 }
 
-// التعديل: برمجة زر الكلمات القريبة
 async function toggleClosestWords() {
     const container = document.getElementById("closestWordsContainer");
     const listDiv = document.getElementById("closestWordsList");
@@ -288,7 +286,7 @@ async function toggleClosestWords() {
     listDiv.innerHTML = "<div style='text-align:center; padding: 10px;'>جاري تحميل الكلمات... ⏳</div>";
     
     try {
-        const result = await apiRequest('/closest', 'POST', { session_id: sessionId });
+        const result = await apiRequest('/api/closest', 'POST', { session_id: sessionId });
         if (result.success && result.words) {
             listDiv.innerHTML = "";
             result.words.forEach(item => {
@@ -327,7 +325,6 @@ function shareResult() {
     .catch(() => { alert("تعذر نسخ النتيجة"); });
 }
 
-// التعديل: برمجة العداد التنازلي لتوقيت السعودية
 function startCountdown() {
     setInterval(() => {
         const now = new Date();
@@ -363,12 +360,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const savedDarkMode = localStorage.getItem('siyaq_dark_mode');
     if (savedDarkMode === 'false') document.body.classList.remove('dark-mode');
     
-    startCountdown(); // تشغيل العداد أول ما تفتح الصفحة
+    startCountdown();
     
     try {
-        await apiRequest('/health');
+        await apiRequest('/api/health');
     } catch (error) {
-        showError("تعذر الاتصال بالخادم. السيرفر نايم، جاري إيقاظه...");
+        showError("جاري الاتصال بالمخ الذكي...");
     }
     document.getElementById("guessInput").focus();
 });
